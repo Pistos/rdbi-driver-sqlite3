@@ -42,6 +42,13 @@ class TestDatabase < Test::Unit::TestCase
     res = dbh.execute("select * from foo where bar = ?bar", { :bar => 1 })
     assert(res)
     assert_equal([[1]], res.fetch(:all))
+
+    res = dbh.execute("select count(*) from foo")
+    assert(res)
+    assert_kind_of(RDBI::Result, res)
+    assert_equal([[1]], res.fetch(:all))
+    row = res.as(:Array).fetch(:first)
+    assert_equal(1, row[0])
   end
 
   def test_04_prepare
@@ -123,7 +130,7 @@ class TestDatabase < Test::Unit::TestCase
       "insert into foo (bar) values (1)",
       dbh.preprocess_query("insert into foo (bar) values (?)", 1)
     )
-    
+
     assert_equal(
       "insert into foo (bar) values (1)",
       dbh.preprocess_query("insert into foo (bar) values (?bar)", { :bar => 1 })
@@ -248,15 +255,15 @@ class TestDatabase < Test::Unit::TestCase
     res = dbh.execute("select foo, bar from multi_fields where foo = ? and bar = ?bar", 1, { :bar => "foo" })
     assert(res)
     assert_equal([[1, "foo"]], res.fetch(:all))
-    
+
     res = dbh.execute("select foo, bar from multi_fields where foo = ? and bar = ?bar", { :bar => "foo" }, 1)
     assert(res)
     assert_equal([[1, "foo"]], res.fetch(:all))
-    
+
     res = dbh.execute("select foo, bar from multi_fields where foo = ?foo and bar = ?bar", { :foo => 1, :bar => "foo" })
     assert(res)
     assert_equal([[1, "foo"]], res.fetch(:all))
-    
+
     res = dbh.execute("select foo, bar from multi_fields where foo = ?foo and bar = ?", { :foo => 1 }, "foo")
     assert(res)
     assert_equal([[1, "foo"]], res.fetch(:all))
